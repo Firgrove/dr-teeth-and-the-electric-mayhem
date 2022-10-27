@@ -20,11 +20,11 @@ def evaluate(model):
 
 def train(model, train_loader, lr=0.001, momentum=0.9, epochs=5):
     loss_func = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=lr)#, momentum=momentum)
+    optimizer = optim.SGD(model.parameters(), lr=lr)#, momentum=momentum)
 
     for epoch in range(epochs):
-        for i, images, _, _, landmarks in enumerate(train_loader, 0):
-
+        for i, data in enumerate(train_loader, 0):
+            images, _, _, _, landmarks = data   # images, age, gender, race, landmarks
             # Zero paramter gradients
             optimizer.zero_grad()
 
