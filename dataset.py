@@ -14,6 +14,7 @@ Based on PyTorch Docs Tutorial: https://gotil.la/3gp1ZyN
 """
 import os
 import pandas as pd
+import torch
 from torch.utils.data import Dataset
 from torchvision.io import read_image
 
@@ -100,10 +101,14 @@ class CustomImageDataset(Dataset):
 
         # Reorganises the x,y landmark coordinates as a 68x2 dataframe
         coords = self.img_labels.iloc[idx, 1:].tolist()
-        raw_landmarks: list[tuple[int, int]] = []
+        # raw_landmarks: list[tuple[int, int]] = []
+        # for i in range(0, len(coords), 2):
+        #    raw_landmarks.append((coords[i], coords[i+1]))
+        # landmarks = pd.DataFrame(raw_landmarks, columns=['x', 'y'])
+        raw_landmarks: list[list[int, int]] = []
         for i in range(0, len(coords), 2):
-            raw_landmarks.append((coords[i], coords[i+1]))
-        landmarks = pd.DataFrame(raw_landmarks, columns=['x', 'y'])
+            raw_landmarks.append([coords[i], coords[i + 1]])
+        landmarks = torch.tensor(raw_landmarks)
 
         # Returns dict with requested image and its metadata
         return {'image': image,
@@ -120,7 +125,7 @@ if __name__ == "__main__":
     UTKFace = CustomImageDataset('landmark_list.txt', 'UTKFace')
 
     # Retrieve the first image in the Dataset
-    image0 = UTKFace[0]
+    image0 = UTKFace[13952]
 
     # Print out the values for the returned dictionary
     print(image0)
