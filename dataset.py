@@ -66,7 +66,7 @@ class CustomImageDataset(Dataset):
         """
         return len(self.img_labels)
 
-    def __getitem__(self, idx: int) -> dict:
+    def __getitem__(self, idx: int):
         """
         Used by PyTorch to request a given image within the Dataset.
 
@@ -111,12 +111,13 @@ class CustomImageDataset(Dataset):
         landmarks = torch.tensor(raw_landmarks)
 
         # Returns dict with requested image and its metadata
-        return {'image': image,
-                'age': age,
-                'gender': gender,
-                'race': race,
-                'datetime': datetime,
-                'landmarks': landmarks}
+        # return {'image': image,
+        #         'age': age,
+        #         'gender': gender,
+        #         'race': race,
+        #         'datetime': datetime,
+        #         'landmarks': landmarks}
+        return image, age, gender, race, landmarks
 
 
 if __name__ == "__main__":
