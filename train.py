@@ -23,13 +23,13 @@ def train(model, train_loader, lr=0.001, momentum=0.9, epochs=5):
     optimizer = optim.Adam(model.parameters(), lr=lr)#, momentum=momentum)
 
     for epoch in range(epochs):
-        for i, inputs in enumerate(train_loader, 0):
-            
+        for i, images, _, _, landmarks in enumerate(train_loader, 0):
+
             # Zero paramter gradients
             optimizer.zero_grad()
 
-            outputs = model(inputs["image"])
-            loss = loss_func(outputs, torch.tensor(inputs["landmarks"].iloc[31]).float())
+            outputs = model(images)
+            loss = loss_func(outputs, landmarks[:, 31].float())
             loss.backward()
             optimizer.step()
 
@@ -55,4 +55,4 @@ if __name__ == "__main__":
     UTKFace = CustomImageDataset('landmark_list.txt', 'UTKFace')
     train_dataloader = DataLoader(UTKFace, batch_size=64, shuffle=True)
 
-    model = train(model, UTKFace)
+    model = train(model, train_dataloader)
