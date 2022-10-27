@@ -86,7 +86,7 @@ class CustomImageDataset(Dataset):
 
         # Reads file for given index as a tensor image
         imagename = self.img_labels.iloc[idx, 0]
-        image = read_image(os.path.join(self.img_dir, imagename + ".chip.jpg"))
+        image = read_image(os.path.join(self.img_dir, imagename + ".chip.jpg")).float()
 
         # Applies any transformations to image
         if self.transform:
