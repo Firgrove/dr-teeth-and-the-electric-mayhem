@@ -3,9 +3,14 @@
 UTKZIP='UTKFace.tar.gz';
 UTKDIR='UTKFace';
 
-	if [ ! -d "$UTKDIR" ] && [ -f "$UTKZIP" ]; then
-    echo "Unzipping $UTKZIP..."
-    tar -xvf UTKFace.tar.gz 2>/dev/null
+	if [ ! -d "$UTKDIR" ]; then
+		if [ -f "$UTKZIP" ]; then
+		  echo "Unzipping $UTKZIP to $UTKDIR..."
+			tar -xvf UTKFace.tar.gz 2>/dev/null
+			echo "Done. Feel free to delete $UTKZIP."
+		else
+		  echo "$UTKDIR directory not found. Please download $UTKZIP from https://gotil.la/3ziDcCX"
+		fi
 	fi
 	if [ -d "$UTKDIR" ]; then
 	  echo "$UTKDIR directory found."
