@@ -8,8 +8,12 @@ env.bak/
 venv.bak/
 
 data/
+<<<<<<< HEAD
 
 UTKFace/
 __pycache__/
 crop_part1/
 landmark_list_*
+=======
+/UTKFace/
+>>>>>>> 7535fa63bf5c061e8e5053d84d9b05ac8d1b9b03
