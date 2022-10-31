@@ -8,3 +8,8 @@ env.bak/
 venv.bak/
 
 data/
+
+UTKFace/
+__pycache__/
+crop_part1/
+landmark_list_*
