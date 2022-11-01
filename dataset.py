@@ -12,9 +12,8 @@ Implement a Custom DataSet object to allow our PyTorch network to access data.
 
 Based on PyTorch Docs Tutorial: https://gotil.la/3gp1ZyN
 """
-import os
-import pandas as pd
-import torch
+from os import path
+from torch import tensor, div
 from torch.utils.data import Dataset
 from torchvision.io import read_image
 
@@ -36,9 +35,9 @@ class CustomImageDataset(Dataset):
         """
 
         # Read the landmarks file for later querying
-        self.img_labels = pd.read_csv(annotations_file,
-                                      sep=r'\s+',
-                                      header=None)
+        with open(annotations_file, 'r') as file:
+            lines = file.readlines()
+        self.img_labels = [line.split() for line in lines]
         self.img_dir: str = img_dir
         self.transform = transform
 
@@ -74,50 +73,38 @@ class CustomImageDataset(Dataset):
         dataset_obj[42]
 
         :param idx: number of requested image (should be less than __len__)
-        :return: a dictionary with the image and its respective metadata for
-        the requested index; it uses the following keys:
-            'image': PyTorch image obj for the image file
+        :return: the requested image and its metadata as separate variables:
+            'image': Scaled PyTorch tensor obj for the image file
             'age': int with the age of the person in the image
             'gender': str ('male' or 'female')
             'race': str ('white', 'black', 'asian', 'indian', 'others')
-            'datetime': int (YYYYMMDDHHmm)
-            'landamarks': Pandas Dataframe obj with 68 pairs of x,y coords
+            'landamarks': PyTorch tensor obj with 68 pairs of x,y coords
         """
 
         # Reads file for given index as a tensor image
-        imagename = self.img_labels.iloc[idx, 0]
-        image = read_image(os.path.join(self.img_dir, imagename + ".chip.jpg")).float()
+        imagename = self.img_labels[idx][0] + ".chip.jpg"
+        image = read_image(path.join(self.img_dir, imagename)).float()
+        image_scaled = div(image, 255)
 
         # Applies any transformations to image
         if self.transform:
-            image = self.transform(image)
+            image_scaled = self.transform(image_scaled)
 
         # Reads the image metadata from the filename
         splitname: list[str] = imagename.split(".")[0].split("_")
         age: int = int(splitname[0])
         gender: str = self.genders[splitname[1]]
         race: str = self.races[splitname[2]]
-        datetime: int = int(splitname[3][:13])
+        # datetime: int = int(splitname[3][:13])    // Not used
 
-        # Reorganises the x,y landmark coordinates as a 68x2 dataframe
-        coords = self.img_labels.iloc[idx, 1:].tolist()
-        # raw_landmarks: list[tuple[int, int]] = []
-        # for i in range(0, len(coords), 2):
-        #    raw_landmarks.append((coords[i], coords[i+1]))
-        # landmarks = pd.DataFrame(raw_landmarks, columns=['x', 'y'])
+        # Reorganises the x,y landmark coordinates as a 68x2 tensor
+        coords = self.img_labels[idx][1:]
         raw_landmarks: list[list[int, int]] = []
         for i in range(0, len(coords), 2):
-            raw_landmarks.append([coords[i], coords[i + 1]])
-        landmarks = torch.tensor(raw_landmarks)
+            raw_landmarks.append([int(coords[i]), int(coords[i + 1])])
+        landmarks = tensor(raw_landmarks)
 
-        # Returns dict with requested image and its metadata
-        # return {'image': image,
-        #         'age': age,
-        #         'gender': gender,
-        #         'race': race,
-        #         'datetime': datetime,
-        #         'landmarks': landmarks}
-        return image, age, gender, race, landmarks
+        return image_scaled, age, gender, race, landmarks
 
 
 if __name__ == "__main__":
@@ -126,7 +113,7 @@ if __name__ == "__main__":
     UTKFace = CustomImageDataset('landmark_list.txt', 'UTKFace')
 
     # Retrieve the first image in the Dataset
-    image0 = UTKFace[13952]
+    image0 = UTKFace[0]
 
     # Print out the values for the returned dictionary
     print(image0)
