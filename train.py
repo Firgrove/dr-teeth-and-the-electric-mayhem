@@ -52,7 +52,7 @@ def evaluate(model):
     model.train()
     return 0
 
-def train(model, train_loader, lr=0.0001, momentum=0.9, epochs=5):
+def train(model, train_loader, lr, momentum=0.9, epochs=5):
     loss_func = nn.MSELoss()
     optimizer = optim.SGD(model.parameters(), lr=lr)#, momentum=momentum)
 
@@ -82,17 +82,23 @@ if __name__ == "__main__":
     # Read in args
     parser = ArgumentParser()
     parser.add_argument("-f", "--file",
-                    help="Path to data file.", 
-                    metavar="FILE_PATH", 
-                    default="landmark_list.txt")
+                        help="Path to data file.", 
+                        metavar="FILE_PATH", 
+                        default="landmark_list.txt")
     parser.add_argument("-b", "--batch", 
-                    help="Batch size for training.", 
-                    type=int, 
-                    metavar="INT",
-                    default=64)
+                        help="Batch size for training.", 
+                        type=int, 
+                        metavar="INT",
+                        default=64)
     parser.add_argument("-m", "--model",
                         help="Choose which model structure to use.",
-                        default="convNN2")
+                        default="convNN2",
+                        metavar="MODEL_NAME")
+    parser.add_argument("-lr", "--learning_rate",
+                        help="Learning rate to run the optimizer function with.",
+                        default=0.001,
+                        type=int,
+                        metavar="INT")
 
     args = parser.parse_args()
 
@@ -103,7 +109,6 @@ if __name__ == "__main__":
 
     print(f"Training {args.model} from {args.file} with batch_size={args.batch}")
 
-<<<<<<< HEAD
     def seed_worker(worker_id):
         worker_seed = torch.initial_seed() % 2**32
         np.random.seed(worker_seed)
@@ -118,8 +123,6 @@ if __name__ == "__main__":
                                     shuffle=True, 
                                     worker_init_fn=seed_worker,
                                     generator=g,)
-=======
     #console = curses.initscr()
->>>>>>> 5d493358349890304989ba9bc1e40bb4ee7735c5
 
-    model = train(model, train_dataloader)
+    model = train(model, train_dataloader, args.learning_rate)
