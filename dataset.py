@@ -104,7 +104,7 @@ class CustomImageDataset(Dataset):
             raw_landmarks.append([int(coords[i]), int(coords[i + 1])])
         landmarks = tensor(raw_landmarks)
 
-        return image_scaled.float(), age, gender, race, landmarks
+        return image_scaled, age, gender, race, landmarks.float()
 
 
 if __name__ == "__main__":
