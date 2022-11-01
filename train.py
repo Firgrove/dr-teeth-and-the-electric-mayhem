@@ -62,8 +62,6 @@ def train(model, train_loader, lr, momentum=0.9, epochs=5):
             # Zero paramter gradients
             optimizer.zero_grad()
 
-            images = torch.div(images, 255) # Normalisation of pixels
-
             outputs = model(images)
             loss = loss_func(outputs, landmarks[:, 31].float())
             loss.backward()
@@ -102,7 +100,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    model = convNN2()   # TODO: Update to choose between models based on args
+    model = None
+    if args.model == "convNN2":
+        model = convNN2()
 
     UTKFace = CustomImageDataset(args.file, 'UTKFace')
     train_dataloader = DataLoader(UTKFace, batch_size=args.batch, shuffle=True)
