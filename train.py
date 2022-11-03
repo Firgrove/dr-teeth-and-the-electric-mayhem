@@ -50,16 +50,17 @@ def evaluate(model, valid_set_path, device):
     # We're calculating the distance ourselves as using MSE loss doesnt 
     # allow us to square root terms individually.
     model.eval()
-    for images, _, _, _, landmarks in valid_set:
-        images, landmarks = images.to(device), landmarks.to(device)
+    with torch.no_grad():
+        for images, _, _, _, landmarks in valid_set:
+            images, landmarks = images.to(device), landmarks.to(device)
 
-        outputs = model(images)
+            outputs = model(images)
 
-        difference = torch.square(outputs - landmarks[:, 31])
-        difference = torch.sqrt(difference[0, :] + difference[1, :])
+            difference = torch.square(outputs - landmarks[:, 31]).to(device)
+            difference = torch.sqrt(difference[:, 0] + difference[:, 1])
 
     model.train()
-    return difference
+    return torch.mean(difference).item(), torch.std(difference).item()
 
 def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5):
     loss_func = nn.MSELoss()
