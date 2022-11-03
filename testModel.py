@@ -4,6 +4,7 @@ import torch.optim as optim
 import torchvision.models as models
 from train import evaluate
 from net import convNN, convNN2
+from dataset import CustomImageDataset
 
 import sys
 import time
@@ -16,7 +17,7 @@ from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
 
-from dataset import CustomImageDataset
+from torchvision.io import read_image
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -37,9 +38,36 @@ if __name__ == "__main__":
     device = "cpu"
     if args.cuda and torch.cuda.is_available():
         device = "cuda"
-    if substr()
-    model = convNN2()
+
+    if "convNN_" in args.model:
+        model = convNN()
+    else:
+        model = convNN2()
+
     model.load_state_dict(torch.load("./models/" + args.model))
     print(evaluate(model, args.train_file, device))
+    
+    #Attempting to compare output of our neural network to actual values
+    UTKFace = CustomImageDataset("testImage.txt", 'UTKFace')
+    valid_set = DataLoader(UTKFace, 500)
+    model.eval()
+
+    with torch.no_grad():
+        for images, _, _, _, landmarks in valid_set:
+            images, landmarks = images.to(device), landmarks.to(device)
+            outputs = model(images)
+
+
+    print(outputs)
+    print(outputs[0][0].item())
+
+    plt.rcParams["figure.figsize"] = [7.00, 3.50]
+    plt.rcParams["figure.autolayout"] = True
+    im = plt.imread("./UTKFace/2_1_2_20161219140650888.jpg.chip.jpg")
+    fig, ax = plt.subplots()
+    im = ax.imshow(im, extent=[0, 100, 0, 100])
+    x = np.array(range(100))
+    ax.scatter(outputs[0,0].item()*200 , outputs[0,1].item()*200, ls='dotted', linewidth=2, color='red')
+    plt.show()
 
 
