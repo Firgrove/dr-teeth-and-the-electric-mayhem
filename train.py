@@ -78,7 +78,8 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5):
             optimizer.step()
 
             #sys.stdout.flush()
-            sys.stdout.write(f"\rEpoch: {epoch}, Iteration: {i}, Loss: {loss}, Score: {evaluate(model, valid_set, device)}")
+            sys.stdout.write(f"\rEpoch: {epoch}, Iteration: {i},  Loss: {loss}")
+            #, Score: {evaluate(model, valid_set, device)# }")
             #print_percent_done(i, 100)
 
             if i % 1000 == 0:
@@ -143,5 +144,5 @@ if __name__ == "__main__":
     model = train(model, train_dataloader, args.learning_rate, device, args.validation_file, epochs=args.epochs)
 
     #TODO: Eval model here?
-    model_path = f"/models/{args.model}_{args.train_file}.pt"
+    model_path = f"./models/{args.model}_{args.train_file}.pt"
     torch.save(model.state_dict(), model_path)
