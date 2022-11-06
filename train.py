@@ -30,9 +30,9 @@ class Timer():
 
         duration = current_time - self.start_time
     
-        hours = int(duration / 360)
-        minutes = int((duration % 360) / 60)
-        seconds = int((duration % 360) % 60)
+        hours = int(duration / 3600)
+        minutes = int((duration % 3600) / 60)
+        seconds = int((duration % 3600) % 60)
 
         return f"{hours}h {minutes}m {seconds}s"
 
