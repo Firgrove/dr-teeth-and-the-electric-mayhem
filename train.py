@@ -15,7 +15,25 @@ from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 
 from dataset import CustomImageDataset
-from net import convNN, convNN2
+from net import convNN, convNN2, resnet18, resnet34, resnet50
+
+class Timer():
+    def __init__(self):
+        self.start_time = time.time()
+
+    def start(self):
+        self.start_time = time.time()
+
+    def elapsed_time(self):
+        current_time = time.time()
+
+        duration = current_time - self.start_time
+    
+        hours = int(duration / 360)
+        minutes = int((duration % 360) / 60)
+        seconds = int((duration % 360) % 60)
+
+        return f"{hours}h {minutes}m {seconds}s"
 
 def print_percent_done(index, total, bar_len=50, title='Please wait'):
     '''
@@ -62,9 +80,16 @@ def evaluate(model, valid_set_path, device):
     model.train()
     return torch.mean(difference).item(), torch.std(difference).item()
 
-def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5):
+
+def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, display_update_rate=100):
+    """
+    display_update_rate :: counts the number of iterations it takes before the program prints out an update
+    """
     loss_func = nn.MSELoss()
     optimizer = optim.SGD(model.parameters(), lr=lr)#, momentum=momentum)
+
+    timer = Timer()
+    timer.start()
 
     for epoch in range(epochs):
         for i, data in enumerate(train_loader, 0):
@@ -75,19 +100,27 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5):
 
             outputs = model(images)
             loss = loss_func(outputs, landmarks[:, 31])
-            loss.backward()
+            loss.backward() 
             optimizer.step()
 
             #sys.stdout.flush()
-            sys.stdout.write(f"\rEpoch: {epoch}, Iteration: {i}, Loss: {loss}, Score: {evaluate(model, valid_set, device)}")
+            #sys.stdout.write(f"\rEpoch: {epoch}, Iteration: {i}, Loss: {loss}")
             #print_percent_done(i, 100)
 
-            if i % 1000 == 0:
-                print(f"Ep: {epoch}, iteration: {i}, loss: {loss.item()}")
+            sys.stdout.write(f"\r[{timer.elapsed_time()}] Epoch: {epoch}, Iteration: {i}, Loss: {loss}")
+            sys.stdout.flush()
+ 
+            if i % display_update_rate == 0:
+                print(f"\r[{timer.elapsed_time()}] Epoch: {epoch}, Iteration: {i}, Loss: {loss}")
+
+    # calculate total elapsed 
+    
+    print(f"\n\nTraining completed. Total Elapsed Time: {timer.elapsed_time()}")
     
     return model
 
-if __name__ == "__main__":
+
+def main():
     # Read in args
     parser = ArgumentParser()
     parser.add_argument("-f", "--train_file",
@@ -124,25 +157,36 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     device = "cpu"
-    if args.cuda and torch.cuda.is_available():
+
+    if args.cuda and torch.cuda.is_available():    
         device = "cuda"
+    
+    print("Using device: " + device)
 
     model = None
     if args.model == "convNN2":
         model = convNN2().to(device)
+    elif args.model == "resnet18":
+        model = resnet18().to(device)
+    elif args.model == "resnet34":
+        model = resnet34().to(device)
+    elif args.model == "resnet50":
+        model = resnet50().to(device)
 
     UTKFace = CustomImageDataset(args.train_file, 'UTKFace')
     train_dataloader = DataLoader(UTKFace, 
                                     batch_size=args.batch, 
                                     shuffle=True)
 
-    print(f"Training {args.model} from {args.train_file} with batch_size={args.batch}")
+    print(f"Training {args.model} from {args.train_file} with batch_size={args.batch}\n")
 
     #console = curses.initscr()
-
     # Train model and then save it
     model = train(model, train_dataloader, args.learning_rate, device, args.validation_file, epochs=args.epochs)
 
     #TODO: Eval model here?
-    model_path = f"/models/{args.model}_{args.train_file}.pt"
+    model_path = f"models/{args.model}_batch{args.batch}_ep{args.epochs}_lr{args.learning_rate}_{args.train_file}.pt"
     torch.save(model.state_dict(), model_path)
+
+if __name__ == "__main__":
+    main()
