@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision.models as models
 
+import os
 import sys
 import time
 import curses
@@ -112,8 +113,6 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, di
  
             if i % display_update_rate == 0:
                 print(f"\r[{timer.elapsed_time()}] Epoch: {epoch}, Iteration: {i}, Loss: {loss}")
-
-    # calculate total elapsed 
     
     print(f"\n\nTraining completed. Total Elapsed Time: {timer.elapsed_time()}")
     
@@ -185,6 +184,13 @@ def main():
     model = train(model, train_dataloader, args.learning_rate, device, args.validation_file, epochs=args.epochs)
 
     #TODO: Eval model here?
+
+
+    # if models folder doesn't exist, create one
+    if not os.path.isdir("models"):
+        os.mkdir(os.getcwd() + "/models")
+
+    # save model 
     model_path = f"models/{args.model}_batch{args.batch}_ep{args.epochs}_lr{args.learning_rate}_{args.train_file}.pt"
     torch.save(model.state_dict(), model_path)
 
