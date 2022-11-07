@@ -54,38 +54,53 @@ def evaluate(model, valid_set_path, device):
         for images, _, _, _, landmarks in valid_set:
             images, landmarks = images.to(device), landmarks.to(device)
 
-            outputs = model(images)
+            outputs = model(images).view([-1,3,2])
 
-            difference = torch.square(outputs - landmarks[:, 31]).to(device)
+            land_idx = [31, 32, 33]
+            difference = torch.square(outputs - landmarks[:, land_idx]).to(device)
             difference = torch.sqrt(difference[:, 0] + difference[:, 1])
 
     model.train()
     return torch.mean(difference).item(), torch.std(difference).item()
 
-def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5):
+def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, test_freq=10):
     loss_func = nn.MSELoss()
     optimizer = optim.SGD(model.parameters(), lr=lr)#, momentum=momentum)
+
+    batches = len(train_loader)
+    loss_list = []
+    scores = np.empty([batches * epochs, 3])  # This will be much bigger than necessary. TODO: Remove all NaNs after
+    scores[:] = np.nan
 
     for epoch in range(epochs):
         for i, data in enumerate(train_loader, 0):
             images, _, _, _, landmarks = data   # images, age, gender, race, landmarks
+
             # Zero paramter gradients
             optimizer.zero_grad()
             images, landmarks = images.to(device), landmarks.to(device)
 
             outputs = model(images)
-            loss = loss_func(outputs, landmarks[:, 31])
+            land_idx = [31, 32, 33]
+            loss = loss_func(outputs, landmarks[:, land_idx].view(-1, 6))
+            loss_list.append(loss.item())
             loss.backward()
             optimizer.step()
 
+            print(loss)
             #sys.stdout.flush()
-            sys.stdout.write(f"\rEpoch: {epoch}, Iteration: {i}, Loss: {loss}, Score: {evaluate(model, valid_set, device)}")
+            #sys.stdout.write(f"\rEpoch: {epoch}, Iteration: {i}, Loss: {loss}, Score: {evaluate(model, valid_set, device)}")
             #print_percent_done(i, 100)
 
             if i % 1000 == 0:
-                print(f"Ep: {epoch}, iteration: {i}, loss: {loss.item()}")
+                mean, std = evaluate(model, valid_set, device)
+                scores[(epoch * batches) + i, 0] = (epoch * batches) + i
+                scores[(epoch * batches) + i, 1] = mean.item()
+                scores[(epoch * batches) + i, 2] = std.item()
+                print(f"Ep: {epoch}, iteration: {i}, loss: {loss.item()}, mean: {mean.item()}, std: {std.item()}")
+            
     
-    return model
+    return model, loss_list, scores #TODO: Remove NaN rows from scores
 
 if __name__ == "__main__":
     # Read in args
