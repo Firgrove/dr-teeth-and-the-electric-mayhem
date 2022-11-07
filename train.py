@@ -6,6 +6,8 @@ import torchvision.models as models
 import sys
 import time
 import curses
+import copy
+import json
 
 import numpy as np
 
@@ -72,6 +74,11 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
     scores = np.empty([batches * epochs, 3])  # This will be much bigger than necessary. TODO: Remove all NaNs after
     scores[:] = np.nan
 
+    best_model = model
+    best_scores = {"iteration": 0, 
+                "mean": 1000,
+                "std": 1000}
+
     for epoch in range(epochs):
         for i, data in enumerate(train_loader, 0):
             images, _, _, _, landmarks = data   # images, age, gender, race, landmarks
@@ -87,20 +94,28 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
             loss.backward()
             optimizer.step()
 
-            print(loss)
+            #print(loss)
             #sys.stdout.flush()
             #sys.stdout.write(f"\rEpoch: {epoch}, Iteration: {i}, Loss: {loss}, Score: {evaluate(model, valid_set, device)}")
             #print_percent_done(i, 100)
 
-            if i % 1000 == 0:
+            if i % 100 == 0:
                 mean, std = evaluate(model, valid_set, device)
                 scores[(epoch * batches) + i, 0] = (epoch * batches) + i
-                scores[(epoch * batches) + i, 1] = mean.item()
-                scores[(epoch * batches) + i, 2] = std.item()
-                print(f"Ep: {epoch}, iteration: {i}, loss: {loss.item()}, mean: {mean.item()}, std: {std.item()}")
+                scores[(epoch * batches) + i, 1] = mean
+                scores[(epoch * batches) + i, 2] = std
+                print(f"Ep: {epoch}, iteration: {i}, loss: {loss.item()}, mean: {mean}, std: {std}")
+
+                # If the current model is the best we have seen so far, preserver the weights
+                if mean < best_scores["mean"]:
+                    best_model = copy.deepcopy(model)    # We need to copy to preserve weights
+                    best_scores["iteration"] = (epoch * batches) + i
+                    best_scores["mean"] = mean
             
-    
-    return model, loss_list, scores #TODO: Remove NaN rows from scores
+    # Remove iterations where we did not do any validation
+    filtered_scores = scores[~torch.any(scores.isnan(), dim=1)]
+
+    return best_model, best_scores, scores
 
 if __name__ == "__main__":
     # Read in args
@@ -156,8 +171,12 @@ if __name__ == "__main__":
     #console = curses.initscr()
 
     # Train model and then save it
-    model = train(model, train_dataloader, args.learning_rate, device, args.validation_file, epochs=args.epochs)
+    model, info, plots = train(model, train_dataloader, args.learning_rate, device, args.validation_file, epochs=args.epochs)
 
-    #TODO: Eval model here?
     model_path = f"/models/{args.model}_{args.train_file}.pt"
+    scores_path = f"/model_scores/{args.model}_{args.train_file}.pt"
     torch.save(model.state_dict(), model_path)
+    torch.save(plots, scores_path)
+
+    with open(f"model_infos/{args.model}_{args.train_file}.json", "w") as outfile:
+        json.dump(info, outfile)
