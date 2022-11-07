@@ -18,23 +18,25 @@ import matplotlib.pyplot as plt
 from dataset import CustomImageDataset
 from net import convNN, convNN2, resnet18, resnet34, resnet50
 
-class Timer():
-    def __init__(self):
-        self.start_time = time.time()
+from timer import Timer
 
-    def start(self):
-        self.start_time = time.time()
+# class Timer():
+#     def __init__(self):
+#         self.start_time = time.time()
 
-    def elapsed_time(self):
-        current_time = time.time()
+#     def start(self):
+#         self.start_time = time.time()
 
-        duration = current_time - self.start_time
+#     def elapsed_time(self):
+#         current_time = time.time()
+
+#         duration = current_time - self.start_time
     
-        hours = int(duration / 3600)
-        minutes = int((duration % 3600) / 60)
-        seconds = int((duration % 3600) % 60)
+#         hours = int(duration / 3600)
+#         minutes = int((duration % 3600) / 60)
+#         seconds = int((duration % 3600) % 60)
 
-        return f"{hours}h {minutes}m {seconds}s"
+#         return f"{hours}h {minutes}m {seconds}s"
 
 def print_percent_done(index, total, bar_len=50, title='Please wait'):
     '''
