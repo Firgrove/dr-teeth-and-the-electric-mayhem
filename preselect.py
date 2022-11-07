@@ -11,6 +11,7 @@ Objective:
 Function to generate a landmark file with a subset of the images according
 to given filters and, optionally, up to a given target number.
 """
+from os import remove
 from sys import exit
 from os.path import exists
 from random import shuffle, seed
@@ -18,7 +19,7 @@ from random import shuffle, seed
 
 def preselect_landmarks(landmarks_file: str, age=None, gender=None, race=None,
                         *, log: bool = False, randomise: bool = False,
-                        randomseed=None, target=None) -> None:
+                        randomseed=None, target=None, filename=None) -> None:
     """ Preselect Landmarks
 
     Iterates through an original file listing images and associated landmarks
@@ -39,6 +40,7 @@ def preselect_landmarks(landmarks_file: str, age=None, gender=None, race=None,
     :param gender: 'male' or 'female' (str, Default: None)
     :param race: either a str with a single race or a list for multiple races,
         values 'white', 'black', 'asian', 'indian' and 'other' (Default: None)
+    :param filename: filename for target files
     :return: nothing, may print Errors, Warnings and log messages to stdout
     """
     with open(landmarks_file, 'r') as file:
@@ -77,16 +79,23 @@ def preselect_landmarks(landmarks_file: str, age=None, gender=None, race=None,
         exit(1)
 
     # Abort if files already exist with target name (avoid overwriting).
-    filtered_landmarks_file = landmarks_file.split(".")[0]
-    filtered_landmarks_file += "_" + "_".join(filters)
+    if filename:
+        filtered_landmarks_file = filename
+    else:
+        filtered_landmarks_file = landmarks_file.split(".")[0]
+        filtered_landmarks_file += "_" + "_".join(filters)
     filtered_landmarks_file += "_filtered" if target else ""
     filtered_landmarks_file += ".txt"
     if exists(filtered_landmarks_file):
         print(f"Error: File '{filtered_landmarks_file}' already exists in "
               f"current directory; delete or rename and run script again.")
         exit(1)
-    remainder_landmarks_file = landmarks_file.split(".")[0]
-    remainder_landmarks_file += "_" + "_".join(filters) + "_remainder.txt"
+    if filename:
+        remainder_landmarks_file = filename
+    else:
+        remainder_landmarks_file = landmarks_file.split(".")[0]
+        remainder_landmarks_file += "_" + "_".join(filters)
+    remainder_landmarks_file += "_remainder.txt"
     if target and exists(remainder_landmarks_file):
         print(
             f"Error: File '{remainder_landmarks_file}' already exists in "
@@ -164,6 +173,27 @@ def preselect_landmarks(landmarks_file: str, age=None, gender=None, race=None,
                   remainder_landmarks_file)
 
 
+def concatenate_files(target, files, *, delete=False, randomise: bool = False,
+                      randomseed=None):
+    lines = []
+
+    for name in files:
+        with open(name, 'r') as f:
+            for line in f:
+                lines.append(line)
+        if delete:
+            remove(name)
+
+    if randomise:
+        if seed is not None:
+            seed(randomseed)
+        shuffle(lines)
+
+    with open(target, "w") as new_file:
+        for line in lines:
+            new_file.write(line)
+
+
 if __name__ == "__main__":
     # You can call the preselect_landmarks function with a single filter…
     # preselect_landmarks('landmark_list.txt', gender='female')
@@ -197,7 +227,13 @@ if __name__ == "__main__":
     # parameters will shuffle the lines prior to allocating the images; use
     # the same `randomseed` (int) parameter if you want reproducible results.
     # (If `randomseed` is omitted or None, the current system time is used.)
-    preselect_landmarks('landmark_list.txt', gender="male", target=1,
-                        randomise=True, randomseed=2, log=True)
+    # preselect_landmarks('landmark_list.txt', gender="male", target=1,
+    #                     randomise=True, randomseed=2, log=True)
     # Result: landmark_list_male_filtered.txt with 4_0_1_20170110213311678.jpg
     # Result: landmark_list_male_remainder.txt with remaining 23,707 images.
+
+    # preselect_landmarks('landmark_list_concatenated.txt', age=(15, 64),
+    #                     race=['asian', 'black', 'indian', 'white'], filename='ll_initial',
+    #                     randomise=True, randomseed=680780122122)
+
+    concatenate_files("ll_test.txt", files=['ll_males_test_filtered.txt', 'll_females_test_filtered.txt'], randomise=True, randomseed=680780122122)
