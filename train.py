@@ -179,5 +179,8 @@ if __name__ == "__main__":
     torch.save(model.state_dict(), model_path)
     np.savetxt(scores_path, plots, delimiter=",")
 
+    info["epochs"] = args.epochs
+    info["batch"] = args.batch
+
     with open(f"./model_infos/{args.model}_{args.train_file}.json", "w") as outfile:
         json.dump(info, outfile)
