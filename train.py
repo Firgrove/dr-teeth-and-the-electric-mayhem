@@ -99,7 +99,7 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
             #sys.stdout.write(f"\rEpoch: {epoch}, Iteration: {i}, Loss: {loss}, Score: {evaluate(model, valid_set, device)}")
             #print_percent_done(i, 100)
 
-            if i % 100 == 0:
+            if i % 20 == 0:
                 mean, std = evaluate(model, valid_set, device)
                 scores[(epoch * batches) + i, 0] = (epoch * batches) + i
                 scores[(epoch * batches) + i, 1] = mean
@@ -113,9 +113,9 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
                     best_scores["mean"] = mean
             
     # Remove iterations where we did not do any validation
-    filtered_scores = scores[~torch.any(scores.isnan(), dim=1)]
+    filtered_scores = scores[~np.isnan(scores).any(axis=1)]
 
-    return best_model, best_scores, scores
+    return best_model, best_scores, filtered_scores
 
 if __name__ == "__main__":
     # Read in args
@@ -173,10 +173,10 @@ if __name__ == "__main__":
     # Train model and then save it
     model, info, plots = train(model, train_dataloader, args.learning_rate, device, args.validation_file, epochs=args.epochs)
 
-    model_path = f"/models/{args.model}_{args.train_file}.pt"
-    scores_path = f"/model_scores/{args.model}_{args.train_file}.pt"
+    model_path = f"./models/{args.model}_{args.train_file}.pt"
+    scores_path = f"./model_scores/{args.model}_{args.train_file}.csv"
     torch.save(model.state_dict(), model_path)
-    torch.save(plots, scores_path)
+    np.savetxt(scores_path, plots, delimiter=",")
 
-    with open(f"model_infos/{args.model}_{args.train_file}.json", "w") as outfile:
+    with open(f"./model_infos/{args.model}_{args.train_file}.json", "w") as outfile:
         json.dump(info, outfile)
