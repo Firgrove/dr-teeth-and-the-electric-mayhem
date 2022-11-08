@@ -70,14 +70,14 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
     optimizer = optim.SGD(model.parameters(), lr=lr)#, momentum=momentum)
 
     batches = len(train_loader)
-    loss_list = []
     scores = np.empty([batches * epochs, 3])  # This will be much bigger than necessary. TODO: Remove all NaNs after
     scores[:] = np.nan
 
     best_model = model
     best_scores = {"iteration": 0, 
                 "mean": 1000,
-                "std": 1000}
+                "std": 1000,
+                "loss_list": []}
 
     for epoch in range(epochs):
         for i, data in enumerate(train_loader, 0):
@@ -90,7 +90,7 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
             outputs = model(images)
             land_idx = [31, 32, 33]
             loss = loss_func(outputs, landmarks[:, land_idx].view(-1, 6))
-            loss_list.append(loss.item())
+            best_scores["loss_list"].append(loss.item())
             loss.backward()
             optimizer.step()
 
