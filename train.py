@@ -58,7 +58,7 @@ def evaluate(model, valid_set_path, device):
 
             outputs = model(images).view([-1,3,2])
 
-            land_idx = [31, 32, 33]
+            land_idx = [8, 30, 39]
             difference = torch.square(outputs - landmarks[:, land_idx]).to(device)
             difference = torch.sqrt(difference[:, 0] + difference[:, 1])
 
@@ -70,14 +70,14 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
     optimizer = optim.SGD(model.parameters(), lr=lr)#, momentum=momentum)
 
     batches = len(train_loader)
-    loss_list = []
     scores = np.empty([batches * epochs, 3])  # This will be much bigger than necessary. TODO: Remove all NaNs after
     scores[:] = np.nan
 
     best_model = model
     best_scores = {"iteration": 0, 
                 "mean": 1000,
-                "std": 1000}
+                "std": 1000,
+                "loss_list": []}
 
     for epoch in range(epochs):
         for i, data in enumerate(train_loader, 0):
@@ -90,7 +90,7 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
             outputs = model(images)
             land_idx = [31, 32, 33]
             loss = loss_func(outputs, landmarks[:, land_idx].view(-1, 6))
-            loss_list.append(loss.item())
+            best_scores["loss_list"].append(loss.item())
             loss.backward()
             optimizer.step()
 
@@ -111,6 +111,7 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
                     best_model = copy.deepcopy(model)    # We need to copy to preserve weights
                     best_scores["iteration"] = (epoch * batches) + i
                     best_scores["mean"] = mean
+                    best_scores["std"] = std
             
     # Remove iterations where we did not do any validation
     filtered_scores = scores[~np.isnan(scores).any(axis=1)]
