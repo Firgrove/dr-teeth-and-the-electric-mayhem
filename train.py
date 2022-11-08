@@ -58,7 +58,7 @@ def evaluate(model, valid_set_path, device):
 
             outputs = model(images).view([-1,3,2])
 
-            land_idx = [31, 32, 33]
+            land_idx = [8, 30, 39]
             difference = torch.square(outputs - landmarks[:, land_idx]).to(device)
             difference = torch.sqrt(difference[:, 0] + difference[:, 1])
 
