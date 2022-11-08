@@ -111,6 +111,7 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
                     best_model = copy.deepcopy(model)    # We need to copy to preserve weights
                     best_scores["iteration"] = (epoch * batches) + i
                     best_scores["mean"] = mean
+                    best_scores["std"] = std
             
     # Remove iterations where we did not do any validation
     filtered_scores = scores[~torch.any(scores.isnan(), dim=1)]
