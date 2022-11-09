@@ -8,6 +8,7 @@ from dataset import CustomImageDataset
 
 import sys
 import time
+import json
 import curses
 
 import numpy as np
@@ -49,17 +50,44 @@ if __name__ == "__main__":
     else:
         model = convNN2()
 
-    model.load_state_dict(torch.load("./models/" + args.model.split()[0]))
+    model.load_state_dict(torch.load("./models/" + args.model))
     print(evaluate(model, args.test_file, device))
     
-    #Attempting to compare output of our neural network to actual values
-    UTKFace = CustomImageDataset("testImage.txt", 'UTKFace')
-    valid_set = DataLoader(UTKFace, 5, shuffle=True)
-    model.eval()
+    epoch = []
+    error = []
+    std = []
+    # Setting up epoch, error and std arrays so that they can be outputted in a graph
+    model_nopt = args.model.split(".pt")
+    with open("./model_scores/" + model_nopt[0] + ".csv") as file:
+        for line in file:
+            scores = line.split(",")   
+            epoch.append(float(scores[0]))
+            error.append(float(scores[1]))
+            std.append(float(scores[2]))
+    
+    file = open("./model_infos/" + model_nopt[0] + ".json")
+    model_info = json.load(file)
+    print(model_info)
+
+    plt.plot(epoch, error)
+    plt.xlabel("Epochs")
+    plt.ylabel("Error")
+    plt.title('Error change during training')
+    plt.show()
+
+    plt.plot(epoch, std)
+    plt.xlabel("Epochs")
+    plt.ylabel("Standard Deviation")
+    plt.title('STD change during training')
+    plt.show()
+
+
+   
 
     # Loops through and outputs a prediction based on our model for the location of the nose on people
     # this information is then displayed on a graph
     if args.file_img != 'none':
+        model.eval()
         with open(args.file_img) as file:
             for line in file:
                 imgfile = line.split(".jpg")
