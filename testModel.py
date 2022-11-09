@@ -73,6 +73,8 @@ if __name__ == "__main__":
     plt.xlabel("Epochs")
     plt.ylabel("Error")
     plt.title('Error change during training')
+
+    plt.scatter([model_info["iteration"]], [model_info["mean"]])
     plt.show()
 
     plt.plot(epoch, std)
@@ -93,7 +95,7 @@ if __name__ == "__main__":
                 imgfile = line.split(".jpg")
                 plt.rcParams["figure.figsize"] = [7.00, 3.50]
                 plt.rcParams["figure.autolayout"] = True
-                im = plt.imread("./UTKFace/" + imgfile[0] + ".jpg.chip.jpg")
+                im = plt.imread("./UTKFace/" + imgfile[0] + ".jpg.chip.jpg") / 255
 
                 im_tensor = torch.from_numpy(im).float()
                 im_tensor = im_tensor.view(1, 3, 200, 200)
