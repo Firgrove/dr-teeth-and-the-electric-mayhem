@@ -53,7 +53,6 @@ def evaluate(model, valid_set_path, device):
     with torch.no_grad():
         for images, _, _, _, landmarks in valid_set:
             images, landmarks = images.to(device), landmarks.to(device)
-
             outputs = model(images)
 
             difference = torch.square(outputs - landmarks[:, 31]).to(device)
@@ -70,6 +69,9 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5):
         for i, data in enumerate(train_loader, 0):
             images, _, _, _, landmarks = data   # images, age, gender, race, landmarks
             # Zero paramter gradients
+
+            print(images.shape)
+
             optimizer.zero_grad()
             images, landmarks = images.to(device), landmarks.to(device)
 

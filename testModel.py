@@ -11,6 +11,7 @@ import time
 import curses
 
 import numpy as np
+import torchvision.transforms as transforms
 
 from torch.utils.data import DataLoader
 from argparse import ArgumentParser
@@ -25,10 +26,14 @@ if __name__ == "__main__":
                         help="Choose which model structure to use.",
                         default="convNN2",
                         metavar="MODEL_NAME")
-    parser.add_argument("-f", "--train_file",
+    parser.add_argument("-f", "--test_file",
                         help="Path to data file.", 
                         metavar="FILE_PATH", 
                         default="landmark_list.txt")
+    parser.add_argument("-imgf", "--file_img",
+                        help="Path to data file.", 
+                        metavar="FILE_PATH", 
+                        default="none")                    
     parser.add_argument("--cuda",
                         help="Add this argument to run the code using GPU acceleration.",
                         action="store_true")
@@ -44,30 +49,33 @@ if __name__ == "__main__":
     else:
         model = convNN2()
 
-    model.load_state_dict(torch.load("./models/" + args.model))
-    print(evaluate(model, args.train_file, device))
+    model.load_state_dict(torch.load("./models/" + args.model.split()[0]))
+    print(evaluate(model, args.test_file, device))
     
     #Attempting to compare output of our neural network to actual values
     UTKFace = CustomImageDataset("testImage.txt", 'UTKFace')
-    valid_set = DataLoader(UTKFace, 500)
+    valid_set = DataLoader(UTKFace, 5, shuffle=True)
     model.eval()
 
-    with torch.no_grad():
-        for images, _, _, _, landmarks in valid_set:
-            images, landmarks = images.to(device), landmarks.to(device)
-            outputs = model(images)
+    # Loops through and outputs a prediction based on our model for the location of the nose on people
+    # this information is then displayed on a graph
+    if args.file_img != 'none':
+        with open(args.file_img) as file:
+            for line in file:
+                imgfile = line.split(".jpg")
+                plt.rcParams["figure.figsize"] = [7.00, 3.50]
+                plt.rcParams["figure.autolayout"] = True
+                im = plt.imread("./UTKFace/" + imgfile[0] + ".jpg.chip.jpg")
 
+                im_tensor = torch.from_numpy(im).float()
+                im_tensor = im_tensor.view(1, 3, 200, 200)
+                output = model(im_tensor)
 
-    print(outputs)
-    print(outputs[0][0].item())
+                fig, ax = plt.subplots()
+                im = ax.imshow(im, extent=[0, 200, 0, 200])
+                x = np.array(range(200))
+                ax.scatter(output[0,0].item(), output[0,1].item(), ls='dotted', linewidth=2, color='red')
+                plt.show()
 
-    plt.rcParams["figure.figsize"] = [7.00, 3.50]
-    plt.rcParams["figure.autolayout"] = True
-    im = plt.imread("./UTKFace/2_1_2_20161219140650888.jpg.chip.jpg")
-    fig, ax = plt.subplots()
-    im = ax.imshow(im, extent=[0, 100, 0, 100])
-    x = np.array(range(100))
-    ax.scatter(outputs[0,0].item()*200 , outputs[0,1].item()*200, ls='dotted', linewidth=2, color='red')
-    plt.show()
-
+    
 
