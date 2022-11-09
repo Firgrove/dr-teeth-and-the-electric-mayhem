@@ -74,13 +74,14 @@ if __name__ == "__main__":
     plt.ylabel("Error")
     plt.title('Error change during training')
 
-    plt.scatter([model_info["iteration"]], [model_info["mean"]])
+    plt.scatter([model_info["iteration"]], [model_info["mean"]], color = 'red')
     plt.show()
 
     plt.plot(epoch, std)
     plt.xlabel("Epochs")
     plt.ylabel("Standard Deviation")
     plt.title('STD change during training')
+    plt.scatter([model_info["iteration"]], [model_info["std"]], color = 'red')
     plt.show()
 
 
