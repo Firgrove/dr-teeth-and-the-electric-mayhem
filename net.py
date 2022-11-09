@@ -42,7 +42,7 @@ class convNN2(torch.nn.Module):
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3)
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3)
 
-        self.fc1 = nn.Linear(128, 2)
+        self.fc1 = nn.Linear(128, 6)
 
         self.pool = nn.MaxPool2d(2, 2)
 
