@@ -17,7 +17,7 @@ from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 
 from dataset import CustomImageDataset
-from net import convNN, convNN2
+from net import convNN, convNN2, resnet18, resnet34, resnet50
 
 def print_percent_done(index, total, bar_len=50, title='Please wait'):
     '''
@@ -161,6 +161,12 @@ if __name__ == "__main__":
     model = None
     if args.model == "convNN2":
         model = convNN2().to(device)
+    elif args.model == "resnet18":
+        model = resnet18().to(device)
+    elif args.model == "resnet34":
+        model = resnet34().to(device)
+    elif args.model == "resnet50":
+        model = resnet50().to(device)
 
     UTKFace = CustomImageDataset(args.train_file, 'UTKFace')
     train_dataloader = DataLoader(UTKFace, 
