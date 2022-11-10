@@ -88,7 +88,7 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
             images, landmarks = images.to(device), landmarks.to(device)
 
             outputs = model(images)
-            land_idx = [31, 32, 33]
+            land_idx = [8, 30, 39]
             loss = loss_func(outputs, landmarks[:, land_idx].view(-1, 6))
             best_scores["loss_list"].append(loss.item())
             loss.backward()
