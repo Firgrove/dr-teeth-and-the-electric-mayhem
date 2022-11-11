@@ -17,6 +17,12 @@ from torch.utils.data import DataLoader
 from torchvision.io import read_image
 from train import evaluate
 
+def get_coords(landmarks: list) -> torch.Tensor:
+    landmarks = landmarks[1:7]
+    landmarks = [float(i) for i in landmarks]
+    landmarks = torch.tensor(landmarks)
+    return landmarks.reshape(3,2)
+
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-m", "--model",
@@ -46,8 +52,8 @@ if __name__ == "__main__":
     else:
         model = convNN2()
 
-    model.load_state_dict(torch.load("./models/" + args.model))
-    print(evaluate(model, args.test_file, device))
+    model.load_state_dict(torch.load("./models/" + args.model, map_location=torch.device('cpu')))
+    print(evaluate(model, args.test_file, "cpu"))
     
     epoch = []
     error = []
@@ -65,7 +71,7 @@ if __name__ == "__main__":
     model_info = json.load(file)
 
     plt.plot(epoch, error)
-    plt.xlabel("Epochs")
+    plt.xlabel("Iterations")
     plt.ylabel("Error")
     plt.title('Error change during training')
 
@@ -80,28 +86,28 @@ if __name__ == "__main__":
     plt.show()
 
 
-   
-
-    # Loops through and outputs a prediction based on our model for the location of the nose on people
-    # this information is then displayed on a graph
-    if args.file_img != 'none':
-        model.eval()
-        with open(args.file_img) as file:
-            for line in file:
-                imgfile = line.split(".jpg")
-                plt.rcParams["figure.figsize"] = [7.00, 3.50]
-                plt.rcParams["figure.autolayout"] = True
-                im = plt.imread("./UTKFace/" + imgfile[0] + ".jpg.chip.jpg") / 255
-
-                im_tensor = torch.from_numpy(im).float()
-                im_tensor = im_tensor.view(1, 3, 200, 200)
-                output = model(im_tensor)
-
-                fig, ax = plt.subplots()
-                im = ax.imshow(im, extent=[0, 200, 0, 200])
-                x = np.array(range(200))
-                ax.scatter(output[0,0].item(), output[0,1].item(), ls='dotted', linewidth=2, color='red')
-                plt.show()
-
+    UTKFace = CustomImageDataset(args.file_img, 'UTKFace')
+    train_dataloader = DataLoader(UTKFace, 
+                                    batch_size=1, 
+                                    shuffle=False)
     
+    fig, axs = plt.subplots(2,5)
+    axs_flat = axs.flatten()
+    with torch.no_grad():
+        for i, (image, _, _, _, labels) in enumerate(train_dataloader):
+            image = image.squeeze()
+            image = image.permute(1, 2, 0)    #Default was 3,200,200
+            im = axs_flat[i].imshow(image)
+            x = np.array(range(200))
+
+            land_idx = [8, 30, 39]
+            labels = labels.squeeze()
+            print(labels.shape)
+            labels = labels[land_idx, :]
+            print(labels)
+            print(labels[0,:])
+            #ax.scatter(output[:,0], output[:,1], linewidth=2, color='red')
+            axs_flat[i].scatter(labels[:,0], labels[:,1], linewidth=2, color='blue')
+    
+    plt.show()
 
