@@ -3,10 +3,15 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision.models as models
 
+<<<<<<< HEAD
 import os
+=======
+import signal
+>>>>>>> main
 import sys
 import time
-import curses
+import copy
+import json
 
 import numpy as np
 
@@ -18,25 +23,23 @@ import matplotlib.pyplot as plt
 from dataset import CustomImageDataset
 from net import convNN, convNN2, resnet18, resnet34, resnet50
 
-from timer import Timer
+class Timer():
+    def __init__(self):
+        self.start_time = time.time()
 
-# class Timer():
-#     def __init__(self):
-#         self.start_time = time.time()
+    def start(self):
+        self.start_time = time.time()
 
-#     def start(self):
-#         self.start_time = time.time()
+    def elapsed_time(self):
+        current_time = time.time()
 
-#     def elapsed_time(self):
-#         current_time = time.time()
-
-#         duration = current_time - self.start_time
+        duration = current_time - self.start_time
     
-#         hours = int(duration / 3600)
-#         minutes = int((duration % 3600) / 60)
-#         seconds = int((duration % 3600) % 60)
+        hours = int(duration / 3600)
+        minutes = int((duration % 3600) / 60)
+        seconds = int((duration % 3600) % 60)
 
-#         return f"{hours}h {minutes}m {seconds}s"
+        return f"{hours}h {minutes}m {seconds}s"
 
 def print_percent_done(index, total, bar_len=50, title='Please wait'):
     '''
@@ -75,21 +78,28 @@ def evaluate(model, valid_set_path, device):
         for images, _, _, _, landmarks in valid_set:
             images, landmarks = images.to(device), landmarks.to(device)
 
-            outputs = model(images)
+            outputs = model(images).view([-1,3,2])
 
-            difference = torch.square(outputs - landmarks[:, 31]).to(device)
+            land_idx = [8, 30, 39]
+            difference = torch.square(outputs - landmarks[:, land_idx]).to(device)
             difference = torch.sqrt(difference[:, 0] + difference[:, 1])
 
     model.train()
     return torch.mean(difference).item(), torch.std(difference).item()
 
-
-def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, display_update_rate=100):
-    """
-    display_update_rate :: counts the number of iterations it takes before the program prints out an update
-    """
+def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, test_freq=10):
     loss_func = nn.MSELoss()
     optimizer = optim.SGD(model.parameters(), lr=lr)#, momentum=momentum)
+
+    batches = len(train_loader)
+    scores = np.empty([batches * epochs, 3])  # This will be much bigger than necessary. TODO: Remove all NaNs after
+    scores[:] = np.nan
+
+    best_model = model
+    best_scores = {"iteration": 0, 
+                "mean": 1000,
+                "std": 1000,
+                "loss_list": []}
 
     timer = Timer()
     timer.start()
@@ -97,28 +107,41 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, di
     for epoch in range(epochs):
         for i, data in enumerate(train_loader, 0):
             images, _, _, _, landmarks = data   # images, age, gender, race, landmarks
+
             # Zero paramter gradients
             optimizer.zero_grad()
             images, landmarks = images.to(device), landmarks.to(device)
 
             outputs = model(images)
-            loss = loss_func(outputs, landmarks[:, 31])
-            loss.backward() 
+            land_idx = [8, 30, 39]
+            loss = loss_func(outputs, landmarks[:, land_idx].view(-1, 6))
+            best_scores["loss_list"].append(loss.item())
+            loss.backward()
             optimizer.step()
 
+            #print(loss)
             #sys.stdout.flush()
-            #sys.stdout.write(f"\rEpoch: {epoch}, Iteration: {i}, Loss: {loss}")
+            #sys.stdout.write(f"\rEpoch: {epoch}, Iteration: {i}, Loss: {loss}, Score: {evaluate(model, valid_set, device)}")
             #print_percent_done(i, 100)
 
-            sys.stdout.write(f"\r[{timer.elapsed_time()}] Epoch: {epoch}, Iteration: {i}, Loss: {loss}")
-            sys.stdout.flush()
- 
-            if i % display_update_rate == 0:
-                print(f"\r[{timer.elapsed_time()}] Epoch: {epoch}, Iteration: {i}, Loss: {loss}")
-    
-    print(f"\n\nTraining completed. Total Elapsed Time: {timer.elapsed_time()}")
-    
-    return model
+            if i % 20 == 0:
+                mean, std = evaluate(model, valid_set, device)
+                scores[(epoch * batches) + i, 0] = (epoch * batches) + i
+                scores[(epoch * batches) + i, 1] = mean
+                scores[(epoch * batches) + i, 2] = std
+                print(f"[{timer.elapsed_time()}] Epoch: {epoch}, iteration: {i}, loss: {loss.item()}, mean: {mean}, std: {std}")
+
+                # If the current model is the best we have seen so far, preserver the weights
+                if mean < best_scores["mean"]:
+                    best_model = copy.deepcopy(model)    # We need to copy to preserve weights
+                    best_scores["iteration"] = (epoch * batches) + i
+                    best_scores["mean"] = mean
+                    best_scores["std"] = std
+            
+    # Remove iterations where we did not do any validation
+    filtered_scores = scores[~np.isnan(scores).any(axis=1)]
+
+    return best_model, best_scores, filtered_scores
 
 
 def main():
@@ -164,6 +187,8 @@ def main():
     
     print("Using device: " + device)
 
+    print("Using device: " + device)
+
     model = None
     if args.model == "convNN2":
         model = convNN2().to(device)
@@ -181,20 +206,19 @@ def main():
 
     print(f"Training {args.model} from {args.train_file} with batch_size={args.batch}\n")
 
-    #console = curses.initscr()
     # Train model and then save it
-    model = train(model, train_dataloader, args.learning_rate, device, args.validation_file, epochs=args.epochs)
+    model, info, plots = train(model, train_dataloader, args.learning_rate, device, args.validation_file, epochs=args.epochs)
 
-    #TODO: Eval model here?
-
-
-    # if models folder doesn't exist, create one
-    if not os.path.isdir("models"):
-        os.mkdir(os.getcwd() + "/models")
-
-    # save model 
-    model_path = f"models/{args.model}_batch{args.batch}_ep{args.epochs}_lr{args.learning_rate}_{args.train_file}.pt"
+    # save model and training/validation results
+    # filename includes batchsize, epoch number, learning rate
+    filename = f"{args.model}_{args.train_file}_batch{args.batch}_ep{args.epochs}_lr{args.learning_rate}"
+    model_path = f"./models/{filename}.pt"
+    scores_path = f"./model_scores/{filename}.csv"
     torch.save(model.state_dict(), model_path)
+    np.savetxt(scores_path, plots, delimiter=",")
 
-if __name__ == "__main__":
-    main()
+    info["epochs"] = args.epochs
+    info["batch"] = args.batch
+
+    with open(f"./model_infos/{filename}.json", "w") as outfile:
+        json.dump(info, outfile)

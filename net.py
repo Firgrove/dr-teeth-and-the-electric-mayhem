@@ -2,9 +2,13 @@ import torch
 import torch.nn as nn
 
 import torch.nn.functional as F
+<<<<<<< HEAD
 
 import torchvision.models as models
 
+=======
+import torchvision.models as models
+>>>>>>> main
 '''
 Basic convolutional neural net for images.
 '''
@@ -44,7 +48,7 @@ class convNN2(torch.nn.Module):
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3)
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3)
 
-        self.fc1 = nn.Linear(128, 2)
+        self.fc1 = nn.Linear(128, 6)
 
         self.pool = nn.MaxPool2d(2, 2)
 
@@ -68,7 +72,7 @@ class convNN2(torch.nn.Module):
 class resnet18(nn.Module):
     def __init__(self):
         super(resnet18, self).__init__()
-        self.resnet = models.ResNet(models.resnet.BasicBlock, [2, 2, 2, 2], num_classes=2)
+        self.resnet = models.ResNet(models.resnet.BasicBlock, [2, 2, 2, 2], num_classes=6)
     
     def forward(self, x):
         return self.resnet.forward(x)
@@ -76,7 +80,7 @@ class resnet18(nn.Module):
 class resnet34(nn.Module):
     def __init__(self):
         super(resnet34, self).__init__()
-        self.resnet = models.ResNet(models.resnet.BasicBlock, [3, 4, 6, 3], num_classes=2)
+        self.resnet = models.ResNet(models.resnet.BasicBlock, [3, 4, 6, 3], num_classes=6)
     
     def forward(self, x):
         return self.resnet.forward(x)
@@ -84,7 +88,7 @@ class resnet34(nn.Module):
 class resnet50(nn.Module):
     def __init__(self):
         super(resnet50, self).__init__()
-        self.resnet = models.ResNet(models.resnet.Bottleneck, [3, 4, 6, 3], num_classes=2)
+        self.resnet = models.ResNet(models.resnet.Bottleneck, [3, 4, 6, 3], num_classes=6)
 
     def forward(self, x):
         return self.resnet.forward(x)
