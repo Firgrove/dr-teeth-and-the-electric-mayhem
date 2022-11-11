@@ -1,25 +1,21 @@
+import curses
+import json
+import sys
+import time
+from argparse import ArgumentParser
+
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.models as models
-from train import evaluate
-from net import convNN, convNN2
-from dataset import CustomImageDataset
-
-import sys
-import time
-import json
-import curses
-
-import numpy as np
 import torchvision.transforms as transforms
-
+from dataset import CustomImageDataset
+from net import convNN, convNN2
 from torch.utils.data import DataLoader
-from argparse import ArgumentParser
-
-import matplotlib.pyplot as plt
-
 from torchvision.io import read_image
+from train import evaluate
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -67,7 +63,6 @@ if __name__ == "__main__":
     
     file = open("./model_infos/" + model_nopt[0] + ".json")
     model_info = json.load(file)
-    print(model_info)
 
     plt.plot(epoch, error)
     plt.xlabel("Epochs")
