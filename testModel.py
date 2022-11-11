@@ -23,6 +23,25 @@ def get_coords(landmarks: list) -> torch.Tensor:
     landmarks = torch.tensor(landmarks)
     return landmarks.reshape(3,2)
 
+def generate_images(train_dataloader, axs_flat):
+    with torch.no_grad():
+            for i, (image, _, _, _, labels) in enumerate(train_dataloader):
+                output = model(image)
+                output = output.reshape(3,2)
+                image = image.squeeze()
+                image = image.permute(1, 2, 0)    #Default was 3,200,200
+                im = axs_flat[i].imshow(image)
+                x = np.array(range(200))
+
+                land_idx = [8, 30, 39]
+                labels = labels.squeeze()
+                labels = labels[land_idx, :]
+                #ax.scatter(output[:,0], output[:,1], linewidth=2, color='red')
+                axs_flat[i].scatter(output[:,0], output[:,1], linewidth=2, color='c', s = 5)
+                axs_flat[i].scatter(labels[:,0], labels[:,1], linewidth=2, color='m', s = 5)
+
+
+
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-m", "--model",
@@ -33,7 +52,7 @@ if __name__ == "__main__":
                         help="Path to data file.", 
                         metavar="FILE_PATH", 
                         default="landmark_list.txt")
-    parser.add_argument("-imgf", "--file_img",
+    parser.add_argument("-imf", "--file_img",
                         help="Path to data file.", 
                         metavar="FILE_PATH", 
                         default="none")                    
@@ -72,10 +91,11 @@ if __name__ == "__main__":
 
     plt.plot(epoch, error)
     plt.xlabel("Iterations")
-    plt.ylabel("Error")
+    plt.ylabel("Mean Error")
     plt.title('Error change during training')
 
     plt.scatter([model_info["iteration"]], [model_info["mean"]], color = 'red')
+    plt.gca().legend(('','Epoch of current model'))
     plt.show()
 
     plt.plot(epoch, std)
@@ -83,31 +103,20 @@ if __name__ == "__main__":
     plt.ylabel("Standard Deviation")
     plt.title('STD change during training')
     plt.scatter([model_info["iteration"]], [model_info["std"]], color = 'red')
+    plt.gca().legend(('','Epoch of current model'))
     plt.show()
 
-
-    UTKFace = CustomImageDataset(args.file_img, 'UTKFace')
-    train_dataloader = DataLoader(UTKFace, 
-                                    batch_size=1, 
-                                    shuffle=False)
-    
-    fig, axs = plt.subplots(2,5)
-    axs_flat = axs.flatten()
-    with torch.no_grad():
-        for i, (image, _, _, _, labels) in enumerate(train_dataloader):
-            image = image.squeeze()
-            image = image.permute(1, 2, 0)    #Default was 3,200,200
-            im = axs_flat[i].imshow(image)
-            x = np.array(range(200))
-
-            land_idx = [8, 30, 39]
-            labels = labels.squeeze()
-            print(labels.shape)
-            labels = labels[land_idx, :]
-            print(labels)
-            print(labels[0,:])
-            #ax.scatter(output[:,0], output[:,1], linewidth=2, color='red')
-            axs_flat[i].scatter(labels[:,0], labels[:,1], linewidth=2, color='blue')
-    
-    plt.show()
+    if args.file_img != 'none':
+        UTKFace = CustomImageDataset(args.file_img, 'UTKFace')
+        train_dataloader = DataLoader(UTKFace, 
+                                        batch_size=1, 
+                                        shuffle=False)
+        
+        fig, axs = plt.subplots(2,5)
+        axs_flat = axs.flatten()
+        
+        generate_images(train_dataloader, axs_flat)
+        #plt.subplots_adjust(wspace=0, hspace=0)
+        plt.legend(('Predicted output','Expected output'), loc="upper left")
+        plt.show()
 
