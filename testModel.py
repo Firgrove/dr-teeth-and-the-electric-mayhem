@@ -95,7 +95,7 @@ if __name__ == "__main__":
     plt.title('Error change during training')
 
     plt.scatter([model_info["iteration"]], [model_info["mean"]], color = 'red')
-    plt.gca().legend(('','Epoch of current model'))
+    plt.gca().legend(('Mean Error','Epoch of Saved Model'))
     plt.show()
 
     plt.plot(epoch, std)
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     plt.ylabel("Standard Deviation")
     plt.title('STD change during training')
     plt.scatter([model_info["iteration"]], [model_info["std"]], color = 'red')
-    plt.gca().legend(('','Epoch of current model'))
+    plt.gca().legend(('Standard Deviation','Epoch of Saved Model'))
     plt.show()
 
     if args.file_img != 'none':
