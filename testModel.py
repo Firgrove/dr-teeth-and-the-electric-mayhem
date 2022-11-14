@@ -101,7 +101,7 @@ if __name__ == "__main__":
     plt.title('Error change during training')
 
     plt.scatter([model_info["iteration"]], [model_info["mean"]], color = 'red')
-    plt.gca().legend(('','Epoch of current model'))
+    plt.gca().legend(('Validation Error','Best performing iteration'))
     plt.show()
 
     plt.plot(epoch, std)
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     plt.ylabel("Standard Deviation")
     plt.title('STD change during training')
     plt.scatter([model_info["iteration"]], [model_info["std"]], color = 'red')
-    plt.gca().legend(('','Epoch of current model'))
+    plt.gca().legend(('Validation Error','Best performing iteration'))
     plt.show()
 
     if args.file_img != 'none':
@@ -118,11 +118,11 @@ if __name__ == "__main__":
                                         batch_size=1, 
                                         shuffle=False)
         
-        fig, axs = plt.subplots(2,5)
+        fig, axs = plt.subplots(2,5, figsize=(20,10))
         axs_flat = axs.flatten()
         
         generate_images(train_dataloader, axs_flat)
         #plt.subplots_adjust(wspace=0, hspace=0)
-        plt.legend(('Predicted output','Expected output'), loc="upper left")
+        fig.legend(('Predicted output','Expected output'))
         plt.show()
 
