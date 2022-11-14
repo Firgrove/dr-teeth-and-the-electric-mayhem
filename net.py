@@ -2,7 +2,13 @@ import torch
 import torch.nn as nn
 
 import torch.nn.functional as F
+<<<<<<< HEAD
 
+import torchvision.models as models
+
+=======
+import torchvision.models as models
+>>>>>>> main
 '''
 Basic convolutional neural net for images.
 '''
@@ -62,3 +68,27 @@ class convNN2(torch.nn.Module):
          out = self.fc1(x) 
 
          return out
+
+class resnet18(nn.Module):
+    def __init__(self):
+        super(resnet18, self).__init__()
+        self.resnet = models.ResNet(models.resnet.BasicBlock, [2, 2, 2, 2], num_classes=6)
+    
+    def forward(self, x):
+        return self.resnet.forward(x)
+
+class resnet34(nn.Module):
+    def __init__(self):
+        super(resnet34, self).__init__()
+        self.resnet = models.ResNet(models.resnet.BasicBlock, [3, 4, 6, 3], num_classes=6)
+    
+    def forward(self, x):
+        return self.resnet.forward(x)
+
+class resnet50(nn.Module):
+    def __init__(self):
+        super(resnet50, self).__init__()
+        self.resnet = models.ResNet(models.resnet.Bottleneck, [3, 4, 6, 3], num_classes=6)
+
+    def forward(self, x):
+        return self.resnet.forward(x)

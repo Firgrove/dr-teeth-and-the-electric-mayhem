@@ -3,9 +3,13 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision.models as models
 
+<<<<<<< HEAD
+import os
+=======
+import signal
+>>>>>>> main
 import sys
 import time
-import curses
 import copy
 import json
 
@@ -17,7 +21,25 @@ from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 
 from dataset import CustomImageDataset
-from net import convNN, convNN2
+from net import convNN, convNN2, resnet18, resnet34, resnet50
+
+class Timer():
+    def __init__(self):
+        self.start_time = time.time()
+
+    def start(self):
+        self.start_time = time.time()
+
+    def elapsed_time(self):
+        current_time = time.time()
+
+        duration = current_time - self.start_time
+    
+        hours = int(duration / 3600)
+        minutes = int((duration % 3600) / 60)
+        seconds = int((duration % 3600) % 60)
+
+        return f"{hours}h {minutes}m {seconds}s"
 
 def print_percent_done(index, total, bar_len=50, title='Please wait'):
     '''
@@ -79,6 +101,9 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
                 "std": 1000,
                 "loss_list": []}
 
+    timer = Timer()
+    timer.start()
+
     for epoch in range(epochs):
         for i, data in enumerate(train_loader, 0):
             images, _, _, _, landmarks = data   # images, age, gender, race, landmarks
@@ -88,7 +113,7 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
             images, landmarks = images.to(device), landmarks.to(device)
 
             outputs = model(images)
-            land_idx = [31, 32, 33]
+            land_idx = [8, 30, 39]
             loss = loss_func(outputs, landmarks[:, land_idx].view(-1, 6))
             best_scores["loss_list"].append(loss.item())
             loss.backward()
@@ -104,7 +129,7 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
                 scores[(epoch * batches) + i, 0] = (epoch * batches) + i
                 scores[(epoch * batches) + i, 1] = mean
                 scores[(epoch * batches) + i, 2] = std
-                print(f"Ep: {epoch}, iteration: {i}, loss: {loss.item()}, mean: {mean}, std: {std}")
+                print(f"[{timer.elapsed_time()}] Epoch: {epoch}, iteration: {i}, loss: {loss.item()}, mean: {mean}, std: {std}")
 
                 # If the current model is the best we have seen so far, preserver the weights
                 if mean < best_scores["mean"]:
@@ -118,7 +143,8 @@ def train(model, train_loader, lr, device, valid_set, momentum=0.9, epochs=5, te
 
     return best_model, best_scores, filtered_scores
 
-if __name__ == "__main__":
+
+def main():
     # Read in args
     parser = ArgumentParser()
     parser.add_argument("-f", "--train_file",
@@ -155,32 +181,44 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     device = "cpu"
-    if args.cuda and torch.cuda.is_available():
+
+    if args.cuda and torch.cuda.is_available():    
         device = "cuda"
+    
+    print("Using device: " + device)
+
+    print("Using device: " + device)
 
     model = None
     if args.model == "convNN2":
         model = convNN2().to(device)
+    elif args.model == "resnet18":
+        model = resnet18().to(device)
+    elif args.model == "resnet34":
+        model = resnet34().to(device)
+    elif args.model == "resnet50":
+        model = resnet50().to(device)
 
     UTKFace = CustomImageDataset(args.train_file, 'UTKFace')
     train_dataloader = DataLoader(UTKFace, 
                                     batch_size=args.batch, 
                                     shuffle=True)
 
-    print(f"Training {args.model} from {args.train_file} with batch_size={args.batch}")
-
-    #console = curses.initscr()
+    print(f"Training {args.model} from {args.train_file} with batch_size={args.batch}\n")
 
     # Train model and then save it
     model, info, plots = train(model, train_dataloader, args.learning_rate, device, args.validation_file, epochs=args.epochs)
 
-    model_path = f"./models/{args.model}_{args.train_file}.pt"
-    scores_path = f"./model_scores/{args.model}_{args.train_file}.csv"
+    # save model and training/validation results
+    # filename includes batchsize, epoch number, learning rate
+    filename = f"{args.model}_{args.train_file}_batch{args.batch}_ep{args.epochs}_lr{args.learning_rate}"
+    model_path = f"./models/{filename}.pt"
+    scores_path = f"./model_scores/{filename}.csv"
     torch.save(model.state_dict(), model_path)
     np.savetxt(scores_path, plots, delimiter=",")
 
     info["epochs"] = args.epochs
     info["batch"] = args.batch
 
-    with open(f"./model_infos/{args.model}_{args.train_file}.json", "w") as outfile:
+    with open(f"./model_infos/{filename}.json", "w") as outfile:
         json.dump(info, outfile)
