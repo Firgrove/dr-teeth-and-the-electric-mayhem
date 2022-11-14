@@ -3,11 +3,8 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision.models as models
 
-<<<<<<< HEAD
 import os
-=======
 import signal
->>>>>>> main
 import sys
 import time
 import copy
@@ -21,7 +18,7 @@ from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 
 from dataset import CustomImageDataset
-from net import convNN, convNN2, resnet18, resnet34, resnet50
+from net import convNN, convNN2, resnet18, resnet34, resnet50, denseNN
 
 class Timer():
     def __init__(self):
@@ -184,10 +181,6 @@ def main():
 
     if args.cuda and torch.cuda.is_available():    
         device = "cuda"
-    
-    print("Using device: " + device)
-
-    print("Using device: " + device)
 
     model = None
     if args.model == "convNN2":
@@ -198,6 +191,8 @@ def main():
         model = resnet34().to(device)
     elif args.model == "resnet50":
         model = resnet50().to(device)
+    elif args.model == "dense":
+        model = denseNN(device).to(device)
 
     UTKFace = CustomImageDataset(args.train_file, 'UTKFace')
     train_dataloader = DataLoader(UTKFace, 
@@ -222,3 +217,6 @@ def main():
 
     with open(f"./model_infos/{filename}.json", "w") as outfile:
         json.dump(info, outfile)
+
+if __name__ == "__main__":
+    main()
