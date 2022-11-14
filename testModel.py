@@ -12,7 +12,7 @@ import torch.optim as optim
 import torchvision.models as models
 import torchvision.transforms as transforms
 from dataset import CustomImageDataset
-from net import convNN, convNN2
+from net import convNN, convNN2, resnet18, resnet34, resnet50
 from torch.utils.data import DataLoader
 from torchvision.io import read_image
 from train import evaluate
@@ -68,6 +68,12 @@ if __name__ == "__main__":
 
     if "convNN_" in args.model:
         model = convNN()
+    elif "resnet18" in args.model:
+        model = resnet18()
+    elif "resnet34" in args.model:
+        model = resnet34()
+    elif "resnet50" in args.model:
+        model = resnet50()
     else:
         model = convNN2()
 

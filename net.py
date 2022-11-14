@@ -2,13 +2,7 @@ import torch
 import torch.nn as nn
 
 import torch.nn.functional as F
-<<<<<<< HEAD
-
 import torchvision.models as models
-
-=======
-import torchvision.models as models
->>>>>>> main
 '''
 Basic convolutional neural net for images.
 '''
