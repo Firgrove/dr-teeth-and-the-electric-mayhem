@@ -12,7 +12,7 @@ import torch.optim as optim
 import torchvision.models as models
 import torchvision.transforms as transforms
 from dataset import CustomImageDataset
-from net import convNN, convNN2
+from net import *
 from torch.utils.data import DataLoader
 from torchvision.io import read_image
 from train import evaluate
@@ -68,6 +68,8 @@ if __name__ == "__main__":
 
     if "convNN_" in args.model:
         model = convNN()
+    elif "dense" in args.model:
+        model = denseNN("cpu")
     else:
         model = convNN2()
 

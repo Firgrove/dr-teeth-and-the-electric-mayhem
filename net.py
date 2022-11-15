@@ -67,7 +67,7 @@ class convNN2(torch.nn.Module):
         x = self.sig(self.fc1(x))
         out = self.fc2(x)
 
-         return out
+        return out
 
 class resnet18(nn.Module):
     def __init__(self):
