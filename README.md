@@ -7,7 +7,7 @@
 1. If you haven't already, fork this repo and clone it to your machine.
 2. You'll also need to download the "Aligned & Cropped Faces" images from UTKFace's [Google Drive](https://drive.google.com/drive/folders/0BxYys69jI14kU0I1YUQyY1ZDRUE?resourcekey=0-01Pth1hq20K4kuGVkp3oBw) (you want "UTKFace.tar.gz" which sits at about 102MB).
 3. Copy the _UTKFace.tar.gz_ file into the repo folder.
-3. If you are on a Mac/Unix/Linux machine, you can run the `make.sh` file to unzip the above file and correct 5 known issues with image naming. **Alternatively, you can perform the following steps manually:**
+4. If you are on a Mac/Unix/Linux machine, you can run the `make.sh` file to unzip the above file and correct 5 known issues with image naming. **Alternatively, you can perform the following steps manually:**
    1. Unzip _UTKFace.tar.gz_ .
    2. Within the "UTKFace" directory, you you will need to find and rename the following files:
        * 24_0_1_20170116220224657 .jpg.chip.jpg -> 24_0_1_20170116220224657.jpg.chip.jpg
