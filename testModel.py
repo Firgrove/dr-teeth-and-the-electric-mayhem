@@ -17,12 +17,9 @@ from torch.utils.data import DataLoader
 from torchvision.io import read_image
 from train import evaluate
 
-def get_coords(landmarks: list) -> torch.Tensor:
-    landmarks = landmarks[1:7]
-    landmarks = [float(i) for i in landmarks]
-    landmarks = torch.tensor(landmarks)
-    return landmarks.reshape(3,2)
-
+# Will create a subplot for each image written in the txt file
+# grabs each of their landmarks for chin, nose and eye and plots it on that image
+# Then will plot the output of the model on that same image for easy comparison
 def generate_images(train_dataloader, axs_flat):
     with torch.no_grad():
             for i, (image, _, _, _, labels) in enumerate(train_dataloader):
@@ -69,11 +66,12 @@ if __name__ == "__main__":
     if "convNN_" in args.model:
         model = convNN()
     elif "dense" in args.model:
-        model = denseNN("cpu")
+        model = denseNN()
     else:
         model = convNN2()
 
     model.load_state_dict(torch.load("./models/" + args.model, map_location=torch.device('cpu')))
+    print(model.__class__.__name__)
     print(evaluate(model, args.test_file, "cpu"))
     
     epoch = []
@@ -91,6 +89,7 @@ if __name__ == "__main__":
     file = open("./model_infos/" + model_nopt[0] + ".json")
     model_info = json.load(file)
 
+    # Graph for Change in mean error over time
     plt.plot(epoch, error)
     plt.xlabel("Iterations")
     plt.ylabel("Mean Error")
@@ -100,6 +99,7 @@ if __name__ == "__main__":
     plt.gca().legend(('Validation Error','Best performing iteration'))
     plt.show()
 
+    # Graph for Change in std over time
     plt.plot(epoch, std)
     plt.xlabel("Epochs")
     plt.ylabel("Standard Deviation")
