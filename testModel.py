@@ -122,3 +122,12 @@ if __name__ == "__main__":
         fig.legend(('Predicted output','Expected output'))
         plt.show()
 
+    x = torch.tensor([])
+    for param in model.parameters():
+        x = torch.cat((x, param.data.flatten()))
+
+    import pandas as pd
+
+    df = pd.DataFrame(x)
+    print(df.describe())
+
