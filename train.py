@@ -1,11 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchvision.models as models
 
-import os
-import signal
-import sys
 import time
 import copy
 import json
