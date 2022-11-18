@@ -104,7 +104,7 @@ class CustomImageDataset(Dataset):
             raw_landmarks.append([int(coords[i]), int(coords[i + 1])])
         landmarks = tensor(raw_landmarks)
 
-        return image_scaled, age, gender, race, landmarks.float()
+        return image_scaled, age, gender, race, landmarks
 
 
 if __name__ == "__main__":
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     UTKFace = CustomImageDataset('landmark_list.txt', 'UTKFace')
 
     # Retrieve the first image in the Dataset
-    image0 = UTKFace[0]
+    image_scaled, age, gender, race, landmarks = UTKFace[0]
 
     # Print out the values for the returned dictionary
-    print(image0)
+    print("Landmarks:\n","Tip of Nose:", landmarks[30],"\nCenter of Chin:", landmarks[8],"\nInside corner of left eye:", landmarks[39],"\n")
