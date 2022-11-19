@@ -123,8 +123,17 @@ if __name__ == "__main__":
         plt.show()
 
     x = torch.tensor([])
+    i = 0
     for param in model.parameters():
+        if i == 1:
+            break
+        print(param)
         x = torch.cat((x, param.data.flatten()))
+        break
+
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            print(name, param.data)
 
     import pandas as pd
 
