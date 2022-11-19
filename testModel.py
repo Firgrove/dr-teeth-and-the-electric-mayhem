@@ -101,11 +101,18 @@ if __name__ == "__main__":
 
     # Graph for Change in std over time
     plt.plot(epoch, std)
-    plt.xlabel("Epochs")
+    plt.xlabel("Iterations")
     plt.ylabel("Standard Deviation")
     plt.title('STD change during training')
     plt.scatter([model_info["iteration"]], [model_info["std"]], color = 'red')
     plt.gca().legend(('Validation Error','Best performing iteration'))
+    plt.show()
+
+    # Graph for loss during training
+    plt.plot(list(range(len(model_info["loss_list"]))), model_info["loss_list"])
+    plt.xlabel("Iterations")
+    plt.ylabel("Loss")
+    plt.title('Loss during training')
     plt.show()
 
     if args.file_img != 'none':
@@ -121,13 +128,4 @@ if __name__ == "__main__":
         #plt.subplots_adjust(wspace=0, hspace=0)
         fig.legend(('Predicted output','Expected output'))
         plt.show()
-
-    x = torch.tensor([])
-    for param in model.parameters():
-        x = torch.cat((x, param.data.flatten()))
-
-    import pandas as pd
-
-    df = pd.DataFrame(x)
-    print(df.describe())
 
