@@ -67,6 +67,8 @@ if __name__ == "__main__":
         model = convNN()
     elif "dense" in args.model:
         model = denseNN()
+    elif "resnet" in args.model:
+        model = resnet34()
     else:
         model = convNN2()
 
